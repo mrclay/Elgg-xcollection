@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `prefix_xcollections_entity` (
   `name` text NOT NULL,
   `description` text NOT NULL,
   `key_id` int(11) NOT NULL,
-  `items_type` varchar(50) NOT NULL,
+  `items_type_id` int(11) NOT NULL,
   PRIMARY KEY (`guid`),
   KEY `key_id` (`key_id`),
   FULLTEXT KEY `name` (`name`)

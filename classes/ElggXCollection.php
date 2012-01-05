@@ -19,8 +19,9 @@ class ElggXCollection extends ElggEntity {
 		$this->attributes['name'] = NULL;
 		$this->attributes['description'] = NULL;
 		$this->attributes['key'] = NULL;
-        $this->attributes['item_type'] = NULL;
+        $this->attributes['items_type'] = 'entity';
 		$this->attributes['tables_split'] = 2;
+        $this->attributes['access_id'] = ACCESS_PUBLIC;
 	}
 
 	/**
@@ -39,7 +40,7 @@ class ElggXCollection extends ElggEntity {
 	 * @throws IOException If passed an incorrect guid
 	 * @throws InvalidParameterException If passed an Elgg* Entity that isn't an ElggxCollection
 	 */
-	function __construct($guid = null, ElggEntity $container = null, $key = null) {
+	function __construct($guid = null, ElggEntity $container = null, $key = null, $items_type = null) {
 		$this->initializeAttributes();
 
 		// compatibility for 1.7 api.
@@ -79,6 +80,9 @@ class ElggXCollection extends ElggEntity {
             }
             $this->attributes['container_guid'] = $container_guid;
             $this->attributes['key'] = $key;
+            if (! empty($items_type)) {
+                $this->attributes['items_type'] = trim($items_type);
+            }
             $this->save();
         }
 	}
@@ -142,15 +146,20 @@ class ElggXCollection extends ElggEntity {
 	}
 
 	/**
-	 * Delete the collection.
+	 * Delete the collection (and its items)
 	 *
 	 * @return bool
 	 * @throws SecurityException
 	 */
 	public function delete() {
-		global $CONFIG;
+        global $CONFIG;
 
-		return parent::delete();
+		$delete_successful = delete_xcollection_entity($this->attributes['guid']);
+        if ($delete_successful) {
+            delete_data("DELETE FROM {$CONFIG->dbprefix}xcollection_items
+                         WHERE guid = {$this->attributes['guid']}");
+        }
+        return $delete_successful;
 	}
 
     /**
@@ -175,7 +184,7 @@ class ElggXCollection extends ElggEntity {
     public function set($name, $value) {
         if ($this->attributes['guid']) {
             // if saved, don't allow changing these
-            if ($name === 'container_guid' || $name === 'key') {
+            if ($name === 'container_guid' || $name === 'key' || $name === 'items_type') {
                 return false;
             }
         }
