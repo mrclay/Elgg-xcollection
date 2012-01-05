@@ -2,8 +2,9 @@
 
 require __DIR__ . '/_inc.php';
 
-//delete_data("DELETE FROM elgg_entities WHERE type = 'xcollection'");
-//delete_data("DELETE FROM elgg_xcollections_entity");
+//delete_data("DELETE FROM elgg_entities WHERE guid = 271");
+
+header('Content-Type: text/plain');
 
 $user = elgg_get_logged_in_user_entity();
 
@@ -21,7 +22,7 @@ assertTrue($collection->key === $key, "Has right key");
 
 assertTrue($collection->container_guid === $user->get('guid'), "Has right container_guid");
 
-//$collection->delete();
+$collection->delete();
 
 $collection = elgg_get_xcollection($user, $key);
 

@@ -2,7 +2,7 @@
 /**
  * A Collection entity.
  */
-class ElggXCollection extends ElggEntity {
+class ElggXCollection extends ElggObject {
 
     /**
 	 * Initialise the attributes array.
@@ -15,32 +15,24 @@ class ElggXCollection extends ElggEntity {
 	protected function initializeAttributes() {
 		parent::initializeAttributes();
 
-		$this->attributes['type'] = "xcollection";
-		$this->attributes['name'] = NULL;
-		$this->attributes['description'] = NULL;
-		$this->attributes['key'] = NULL;
-        $this->attributes['items_type'] = 'entity';
-		$this->attributes['tables_split'] = 2;
-        $this->attributes['access_id'] = ACCESS_PUBLIC;
+		$this->attributes['subtype'] = "xcollection";
+		$this->attributes['access_id'] = ACCESS_PUBLIC;
 	}
 
 	/**
-	 * Load or create a new ElggCollection.
-     *
-     * The constructor is protected to simplify the API; otherwise, when passing in container
-     * and key, the constructor would have to throw an exception if a duplicate would be
-     * created. This way, the
+	 * Load or create a new ElggXCollection.
      *
 	 * @param mixed $guid If an int, load that GUID.  If a db row then will attempt
 	 * to load the rest of the data. If not given, $container and $key must be set
      * and the collection will be immediately saved.
      * @param ElggEntity $container ignored if $guid is given
      * @param string $key ignored if $guid is given
+     * @param string $items_type
 	 *
 	 * @throws IOException If passed an incorrect guid
-	 * @throws InvalidParameterException If passed an Elgg* Entity that isn't an ElggxCollection
+	 * @throws InvalidParameterException If passed an Elgg* Entity that isn't an ElggObject
 	 */
-	function __construct($guid = null, ElggEntity $container = null, $key = null, $items_type = null) {
+	function __construct($guid = null, ElggEntity $container = null, $key = null, $items_type = 'entity') {
 		$this->initializeAttributes();
 
 		// compatibility for 1.7 api.
@@ -79,70 +71,11 @@ class ElggXCollection extends ElggEntity {
                 throw new SecurityException(elgg_echo('SecurityException:Collection:CannotEditContainer'));
             }
             $this->attributes['container_guid'] = $container_guid;
-            $this->attributes['key'] = $key;
-            if (! empty($items_type)) {
-                $this->attributes['items_type'] = trim($items_type);
-            }
+            $this->save();
+            $this->setMetaData('key', $key);
+            $this->setMetaData('items_type', trim($items_type));
             $this->save();
         }
-	}
-
-	/**
-	 * Loads the full collection when given a guid.
-	 *
-	 * @param int $guid Guid of collection entity
-	 *
-	 * @return bool
-	 * @throws InvalidClassException
-	 */
-	protected function load($guid) {
-		// Test to see if we have the generic stuff
-		if (!parent::load($guid)) {
-			return false;
-		}
-
-		// Check the type
-		if ($this->attributes['type'] != 'xcollection') {
-			$msg = elgg_echo('InvalidClassException:NotValidElggStar', array($guid, get_class()));
-			throw new InvalidClassException($msg);
-		}
-
-		// Load missing data
-		$row = get_xcollection_entity_as_row($guid);
-		if (($row) && (!$this->isFullyLoaded())) {
-			// If $row isn't a cached copy then increment the counter
-			$this->attributes['tables_loaded']++;
-		}
-
-		// Now put these into the attributes array as core values
-		$objarray = (array) $row;
-		foreach ($objarray as $key => $value) {
-			$this->attributes[$key] = $value;
-		}
-
-		// guid needs to be an int  http://trac.elgg.org/ticket/4111
-		$this->attributes['guid'] = (int)$this->attributes['guid'];
-
-		return true;
-	}
-
-	/**
-	 * Saves collection-specific attributes.
-	 *
-	 * @internal Collection attributes are saved in the collections_entity table.
-	 *
-	 * @return bool
-	 */
-	public function save() {
-		global $CONFIG;
-
-		// Save generic stuff
-		if (!parent::save()) {
-			return false;
-		}
-
-		return create_xcollection_entity($this->get('guid'), $this->get('name'),
-			$this->get('description'), $this->get('key'), $this->get('items_type'));
 	}
 
 	/**
@@ -154,7 +87,7 @@ class ElggXCollection extends ElggEntity {
 	public function delete() {
         global $CONFIG;
 
-		$delete_successful = delete_xcollection_entity($this->attributes['guid']);
+		$delete_successful = parent::delete();
         if ($delete_successful) {
             delete_data("DELETE FROM {$CONFIG->dbprefix}xcollection_items
                          WHERE guid = {$this->attributes['guid']}");
@@ -183,7 +116,8 @@ class ElggXCollection extends ElggEntity {
      */
     public function set($name, $value) {
         if ($this->attributes['guid']) {
-            // if saved, don't allow changing these
+            // if saved, don't allow changing these. When this is core, we'll really be able
+            // to protect key and items_type, but they're metadata in this implementation :(
             if ($name === 'container_guid' || $name === 'key' || $name === 'items_type') {
                 return false;
             }
