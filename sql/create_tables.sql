@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `prefix_xcollection_items` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `guid` bigint(20) unsigned NOT NULL,
   `item` bigint(20) unsigned NOT NULL,
-  `priority` int(11) unsigned,
+  `priority` bigint(20),
   PRIMARY KEY (`id`),
   KEY `guid` (`guid`),
   KEY `priority` (`priority`)

@@ -7,30 +7,39 @@ function xcollection_init() {
 }
 
 /**
- * @param ElggEntity $container
+ * @param int|ElggEntity $container
  * @param string $key
  * @param bool $create_if_missing
  * @param string $items_type
  *
- * @return bool|ElggEntity
- * @throws InvalidParameterException
+ * @return ElggXCollection|false
  */
-function elgg_get_xcollection(ElggEntity $container, $key, $create_if_missing = false, $items_type = null) {
+function elgg_get_xcollection($container, $key, $create_if_missing = false, $items_type = null) {
     global $CONFIG;
 
-    $collection_guid = find_xcollection_guid($container->get('guid'), $key);
-    if ($collection_guid) {
-        // it exists, but can the user see it?
-        return get_entity($collection_guid);
+    if (is_numeric($container)) {
+        $container = get_entity($container);
     }
-    if ($create_if_missing) {
-        try {
-            return new ElggXCollection(null, $container, $key, $items_type);
-        } catch (Exception $e) {}
+    if ($container) {
+        $collection_guid = find_xcollection_guid($container->get('guid'), $key);
+        if ($collection_guid) {
+            // it exists, but can the user see it?
+            return get_entity($collection_guid);
+        }
+        if ($create_if_missing) {
+            try {
+                return new ElggXCollection(null, $container, $key, $items_type);
+            } catch (Exception $e) {}
+        }
     }
     return false;
 }
 
+/**
+ * @param int $container_guid
+ * @param string $key
+ * @return int|false
+ */
 function find_xcollection_guid($container_guid, $key) {
     global $CONFIG;
 
