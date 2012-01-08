@@ -13,7 +13,7 @@ $user = elgg_get_logged_in_user_entity();
 
 $collection = elgg_get_xcollection($user, $key, true);
 
-if (! assertTrue($collection instanceof ElggXCollection, 'User test collection couldn\'t be created')) {
+if (! assertTrue($collection instanceof ElggXCollection, 'Creating test collection')) {
     die();
 }
 
@@ -64,7 +64,8 @@ assertTrue(count($testArray) === $collection->countItems(), "countItems()");
 
 $collection->swapItems(10, 15);
 
-assertTrue(array_values($collection->sliceItems()) === array(15,10,20,24,27,30,34,37,40,50), "swapItems()");
+assertTrue(array_values($collection->sliceItems())
+           === array(15,10,20,24,27,30,34,37,40,50), "swapItems()");
 
 $collection->pushItems(20);
 
@@ -72,9 +73,15 @@ $collection->moveItemToBeginning(20);
 
 $collection->moveItemToEnd(27);
 
-assertTrue(array_values($collection->sliceItems()) === array(20,15,10,24,30,34,37,40,50,20,27), "moveItemToBeginning/End()");
+assertTrue(array_values($collection->sliceItems())
+           === array(20,15,10,24,30,34,37,40,50,20,27), "moveItemToBeginning/End()");
+
+assertTrue($collection->indexOf(20) === 0, "indexOf()");
+
+assertTrue($collection->indexOf(24) === 3, "indexOf()");
+
+assertTrue($collection->indexOf(51) === false, "indexOf()");
 
 //echo implode(',', $collection->sliceItems()) . "\n";
 
 $collection->delete();
-

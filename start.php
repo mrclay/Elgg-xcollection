@@ -11,7 +11,6 @@ function xcollection_init() {
  * @param string $key
  * @param bool $create_if_missing
  * @param string $items_type
- *
  * @return ElggXCollection|false
  */
 function elgg_get_xcollection($container, $key, $create_if_missing = false, $items_type = null) {

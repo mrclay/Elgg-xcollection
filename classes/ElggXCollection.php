@@ -395,7 +395,7 @@ class ElggXCollection extends ElggObject {
     }
 
     /**
-     * Swap the position of two items
+     * Swap the position of two items (the first instance of each)
      *
      * @param int|ElggEntity|ElggExtender $item1
      * @param int|ElggEntity|ElggExtender $item2
@@ -443,17 +443,12 @@ class ElggXCollection extends ElggObject {
         if (! $existing_item) {
             return $this->pushMultiple($new_items);
         }
-        $guid = (int)$this->attributes['guid'];
         $existing_item = $this->toPositiveInt($existing_item);
-        $row = get_data_row("
-            SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
-            WHERE guid = $guid
-              AND item = $existing_item
-        ");
-        if (! isset($row->priority)) {
+        $item_priorities = $this->prioritiesOf($existing_item, 1);
+        if (! $item_priorities) {
             return false;
         }
-        $priority2 = (int)$row->priority;
+        $priority2 = $item_priorities[0];
         // find next lowest priority
         $row = get_data_row("
             SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
@@ -490,17 +485,11 @@ class ElggXCollection extends ElggObject {
         if (! $existing_item) {
             return $this->pushMultiple($new_items);
         }
-        $guid = (int)$this->attributes['guid'];
-        $existing_item = $this->toPositiveInt($existing_item);
-        $row = get_data_row("
-            SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
-            WHERE guid = $guid
-              AND item = $existing_item
-        ");
-        if (! isset($row->priority)) {
+        $item_priorities = $this->prioritiesOf($existing_item, 1);
+        if (! $item_priorities) {
             return false;
         }
-        $priority1 = (int)$row->priority;
+        $priority1 = $item_priorities[0];
         // find next highest priority
         $row = get_data_row("
             SELECT priority, item FROM {$CONFIG->dbprefix}xcollection_items
@@ -546,7 +535,7 @@ class ElggXCollection extends ElggObject {
                     LIMIT 1)
                 ORDER BY priority
             ");
-            return isset($row->cnt) ? (int)$row->cnt - 1 : false;
+            return ($row->cnt == 0) ? false : (int)$row->cnt - 1;
         }
     }
 
