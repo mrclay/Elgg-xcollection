@@ -1,7 +1,10 @@
-Rename this folder to "xcollection" inside your Elgg "mod" folder.
+**Note: Rename this folder to "xcollection" inside your Elgg "mod" folder.**
 
+# xcollection
 
-== API
+This is an experimental implementation of `ElggCollection`, a (will-be) native entity designed to store lists of integers optimized for filtering and/or ordering SQL queries of entities, annotations, or other tables with integer primary keys.
+
+## API
 
 Use the `elgg_get/create_xcollection` functions to modify ElggXCollection objects.
 
@@ -32,3 +35,6 @@ To apply collections to queries, pass in instances of ElggXQueryModifier under t
     apply_xcollections_to_options($options);
     echo elgg_list_entities($options);
 
+### Status
+
+So far, the API is working for managing and querying entities, but there is no front-end infrastructure. 
