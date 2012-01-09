@@ -17,7 +17,6 @@ if (! $collection) {
 if (! $collection instanceof ElggXCollection) {
     die('Could not get/create test collection.');
 }
-testInfo("Collection GUID = " . $collection->get('guid'));
 $plugins = array_slice(elgg_get_plugins(), 0, 3);
 testShowEntities($plugins, "natural order");
 $collection->pushItems($plugins);
@@ -27,7 +26,7 @@ $items = array_values($collection->sliceItems());
 
 $collection->swapItems($items[0], $items[1]);
 
-testInfo("Collection order: " . implode(',', $collection->sliceItems()));
+testInfo("Collection ({$collection->guid}) order: " . implode(',', $collection->sliceItems()));
 
 $options = array(
     'limit' => 9999,
@@ -36,61 +35,61 @@ $options = array(
     'order_by' => "e.guid",
 );
 
-$collApp = new ElggXCollectionApplication($collection);
+$modifier = new ElggXQueryModifier($collection);
 
-$collApp->isReversed = false;
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$modifier->isReversed = false;
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "no others (default)");
 
-$collApp->isReversed = true;
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$modifier->isReversed = true;
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "no others, reversed");
 
-$collApp->includeOthers = true;
+$modifier->includeOthers = true;
 
-$collApp->isReversed = false;
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$modifier->isReversed = false;
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "collection first (sticky)");
 
-$collApp->isReversed = true;
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$modifier->isReversed = true;
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "collection first, reversed");
 
-$collApp->collectionItemsFirst = false;
+$modifier->collectionItemsFirst = false;
 
-$collApp->isReversed = false;
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$modifier->isReversed = false;
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "others first");
 
-$collApp->isReversed = true;
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$modifier->isReversed = true;
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "others first, collection reversed");
 
-$collApp->includeCollection = false;
+$modifier->includeCollection = false;
 
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "no collection, others (filter)");
 
-$collApp->includeOthers = false;
+$modifier->includeOthers = false;
 
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "no collection, no others");
 
 $collection->deleteAllItems();
 
-$collApp = new ElggXCollectionApplication(null);
+$modifier = new ElggXQueryModifier(null);
 
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "missing collection: no others (default)");
 
-$collApp->useAsFilter();
+$modifier->useAsFilter();
 
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "missing collection: used as filter");
 
-$collApp->useStickyModel();
+$modifier->useStickyModel();
 
-$fetchedEntities = elgg_get_entities($collApp->prepareOptions($options));
+$fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "missing collection: sticky model");
 
 // cleanup

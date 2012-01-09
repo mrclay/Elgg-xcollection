@@ -32,11 +32,11 @@ function elgg_get_xcollection($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @return ElggXCollectionApplication
+ * @return ElggXQueryModifier
  */
 function elgg_xcollection_get_sticky_modifier($container, $key) {
     $collection = elgg_get_xcollection($container, $key);
-    $application = new ElggXCollectionApplication($collection);
+    $application = new ElggXQueryModifier($collection);
     return $application->useStickyModel();
 }
 
@@ -45,11 +45,11 @@ function elgg_xcollection_get_sticky_modifier($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @return ElggXCollectionApplication
+ * @return ElggXQueryModifier
  */
-function elgg_xcollection_get_filter($container, $key) {
+function elgg_xcollection_get_filter_modifier($container, $key) {
     $collection = elgg_get_xcollection($container, $key);
-    $application = new ElggXCollectionApplication($collection);
+    $application = new ElggXQueryModifier($collection);
     return $application->useAsFilter();
 }
 
@@ -58,11 +58,11 @@ function elgg_xcollection_get_filter($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @return ElggXCollectionApplication
+ * @return ElggXQueryModifier
  */
-function elgg_xcollection_get_item_selector($container, $key) {
+function elgg_xcollection_get_selector_modifier($container, $key) {
     $collection = elgg_get_xcollection($container, $key);
-    return new ElggXCollectionApplication($collection);
+    return new ElggXQueryModifier($collection);
 }
 
 /**
@@ -106,13 +106,13 @@ function apply_xcollections_to_options(&$options) {
     }
     foreach ($options['xcollections'] as $app) {
         if ($app instanceof ElggXCollection) {
-            $app = new ElggXCollectionApplication($app);
+            $app = new ElggXQueryModifier($app);
         }
-        if ($app instanceof ElggXCollectionApplication) {
+        if ($app instanceof ElggXQueryModifier) {
             $options = $app->prepareOptions($options);
         }
     }
-    ElggXCollectionApplication::resetCounter();
+    ElggXQueryModifier::resetCounter();
     unset($options['xcollections']);
 }
 
