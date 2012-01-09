@@ -3,7 +3,6 @@
 --  `name` text NOT NULL,
 --  `description` text NOT NULL,
 --  `key_id` int(11) NOT NULL,
---  `items_type_id` int(11) NOT NULL,
 --  PRIMARY KEY (`guid`),
 --  KEY `key_id` (`key_id`),
 --  FULLTEXT KEY `name` (`name`)
@@ -15,5 +14,6 @@ CREATE TABLE IF NOT EXISTS `prefix_xcollection_items` (
   `priority` bigint(20),
   PRIMARY KEY (`id`),
   KEY `guid` (`guid`),
+  KEY `item` (`item`),
   KEY `priority` (`priority`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;

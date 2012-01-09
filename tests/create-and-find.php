@@ -33,8 +33,6 @@ testInfo("Collection GUID = " . $collection->get('guid'));
 
 assertTrue($collection->key === $key, "Has right key");
 
-assertTrue($collection->items_type === 'entity', "Has default items_type");
-
 assertTrue($collection->container_guid === $user->get('guid'), "Has right container_guid");
 
 $collection2 = elgg_get_xcollection($user->get('guid'), $key);

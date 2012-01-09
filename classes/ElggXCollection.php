@@ -33,12 +33,11 @@ class ElggXCollection extends ElggObject {
      * and the collection will be immediately saved.
      * @param ElggEntity $container ignored if $guid is given
      * @param string $key ignored if $guid is given
-     * @param string $items_type
 	 *
 	 * @throws IOException If passed an incorrect guid
 	 * @throws InvalidParameterException If passed an Elgg* Entity that isn't an ElggObject
 	 */
-	public function __construct($guid = null, ElggEntity $container = null, $key = null, $items_type = 'entity') {
+	public function __construct($guid = null, ElggEntity $container = null, $key = null) {
 		$this->initializeAttributes();
 
 		// compatibility for 1.7 api.
@@ -79,7 +78,6 @@ class ElggXCollection extends ElggObject {
             $this->attributes['container_guid'] = $container_guid;
             $this->save();
             $this->setMetaData('key', $key);
-            $this->setMetaData('items_type', trim($items_type));
         }
 	}
 
@@ -119,8 +117,8 @@ class ElggXCollection extends ElggObject {
     public function set($name, $value) {
         if ($this->attributes['guid']) {
             // if saved, don't allow changing these. When this is core, we'll really be able
-            // to protect key and items_type, but they're metadata in this implementation :(
-            if ($name === 'container_guid' || $name === 'key' || $name === 'items_type') {
+            // to protect key, but they're metadata in this implementation :(
+            if ($name === 'container_guid' || $name === 'key') {
                 return false;
             }
         }
@@ -141,7 +139,6 @@ class ElggXCollection extends ElggObject {
 			'name',
 			'description',
 			'key',
-            'items_type'
 		));
 	}
 

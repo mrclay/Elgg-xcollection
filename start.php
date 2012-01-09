@@ -70,10 +70,9 @@ function elgg_xcollection_get_selector_modifier($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @param string|null $items_type
  * @return ElggXCollection|false
  */
-function elgg_create_xcollection($container, $key, $items_type = null) {
+function elgg_create_xcollection($container, $key) {
     if (is_numeric($container)) {
         $container = get_entity($container);
     }
@@ -84,10 +83,21 @@ function elgg_create_xcollection($container, $key, $items_type = null) {
             return false;
         }
         try {
-            return new ElggXCollection(null, $container, $key, $items_type);
+            return new ElggXCollection(null, $container, $key);
         } catch (Exception $e) {}
     }
     return false;
+}
+
+/**
+ * Tell if a collection of exists regardless of the current user.
+ *
+ * @param int $container_guid
+ * @param string $key
+ * @return bool
+ */
+function elgg_xcollection_exists($container_guid, $key) {
+    return (bool) find_xcollection_guid($container_guid, $key);
 }
 
 /**
