@@ -24,3 +24,12 @@ function assertTrue($test, $message) {
 function testInfo($message) {
     echo "INFO: " . trim($message) . "\n";
 }
+
+function testShowEntities($entities, $msg = '') {
+    $names = array();
+    foreach ($entities as $entity) {
+        /* @var ElggEntity $entity */
+        $names[] = $entity->get('guid');
+    }
+    testInfo("[" . implode(',', $names) . "] : {$msg}");
+}

@@ -4,23 +4,20 @@ require __DIR__ . '/_inc.php';
 
 header("Content-Type: text/plain");
 
+// prepare test
 if (! elgg_is_logged_in()) {
     die("Must be logged in.");
 }
-
-$key = "xcollection_test1";
+$key = "xcollection_test_manage_items";
 $user = elgg_get_logged_in_user_entity();
-
-$collection = elgg_get_xcollection($user, $key, true);
-
-if (! assertTrue($collection instanceof ElggXCollection, 'Creating test collection')) {
-    die();
+$collection = elgg_create_xcollection($user, $key);
+if (! $collection instanceof ElggXCollection) {
+    die('Could not create test collection.');
 }
-
 testInfo("Collection GUID = " . $collection->get('guid'));
-
 $testArray = array();
 
+// begin test
 $collection->pushItems(30);
 $testArray[] = 30;
 

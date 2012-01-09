@@ -7,15 +7,13 @@ function xcollection_init() {
 }
 
 /**
+ * Get a raw (directly modifiable) collection object
+ *
  * @param int|ElggEntity $container
  * @param string $key
- * @param bool $create_if_missing
- * @param string $items_type
  * @return ElggXCollection|false
  */
-function elgg_get_xcollection($container, $key, $create_if_missing = false, $items_type = null) {
-    global $CONFIG;
-
+function elgg_get_xcollection($container, $key) {
     if (is_numeric($container)) {
         $container = get_entity($container);
     }
@@ -25,13 +23,97 @@ function elgg_get_xcollection($container, $key, $create_if_missing = false, $ite
             // it exists, but can the user see it?
             return get_entity($collection_guid);
         }
-        if ($create_if_missing) {
-            try {
-                return new ElggXCollection(null, $container, $key, $items_type);
-            } catch (Exception $e) {}
-        }
     }
     return false;
+}
+
+/**
+ * Get an object used to implement sticky items
+ *
+ * @param int|ElggEntity $container
+ * @param string $key
+ * @return ElggXCollectionApplication
+ */
+function elgg_xcollection_get_sticky_modifier($container, $key) {
+    $collection = elgg_get_xcollection($container, $key);
+    $application = new ElggXCollectionApplication($collection);
+    return $application->useStickyModel();
+}
+
+/**
+ * Get an object used to filter out collection items
+ *
+ * @param int|ElggEntity $container
+ * @param string $key
+ * @return ElggXCollectionApplication
+ */
+function elgg_xcollection_get_filter($container, $key) {
+    $collection = elgg_get_xcollection($container, $key);
+    $application = new ElggXCollectionApplication($collection);
+    return $application->useAsFilter();
+}
+
+/**
+ * Get an object used to select only items from a collection
+ *
+ * @param int|ElggEntity $container
+ * @param string $key
+ * @return ElggXCollectionApplication
+ */
+function elgg_xcollection_get_item_selector($container, $key) {
+    $collection = elgg_get_xcollection($container, $key);
+    return new ElggXCollectionApplication($collection);
+}
+
+/**
+ * Create a collection
+ *
+ * @param int|ElggEntity $container
+ * @param string $key
+ * @param string|null $items_type
+ * @return ElggXCollection|false
+ */
+function elgg_create_xcollection($container, $key, $items_type = null) {
+    if (is_numeric($container)) {
+        $container = get_entity($container);
+    }
+    if ($container) {
+        $collection_guid = find_xcollection_guid($container->get('guid'), $key);
+        if ($collection_guid) {
+            // already exists
+            return false;
+        }
+        try {
+            return new ElggXCollection(null, $container, $key, $items_type);
+        } catch (Exception $e) {}
+    }
+    return false;
+}
+
+/**
+ * This is a shim to support a 'collections' key in $options for elgg_get_entities, etc.
+ * Call this on $options to convert 'collections' into other keys that those functions
+ * already support.
+ *
+ * @param array $options
+ */
+function apply_xcollections_to_options(&$options) {
+    if (empty($options['xcollections'])) {
+        return;
+    }
+    if (! is_array($options['xcollections'])) {
+        $options['xcollections'] = array($options['xcollections']);
+    }
+    foreach ($options['xcollections'] as $app) {
+        if ($app instanceof ElggXCollection) {
+            $app = new ElggXCollectionApplication($app);
+        }
+        if ($app instanceof ElggXCollectionApplication) {
+            $options = $app->prepareOptions($options);
+        }
+    }
+    ElggXCollectionApplication::resetCounter();
+    unset($options['xcollections']);
 }
 
 /**

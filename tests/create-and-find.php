@@ -4,11 +4,11 @@ require __DIR__ . '/_inc.php';
 
 header("Content-Type: text/plain");
 
+// prepare test
 if (! elgg_is_logged_in()) {
     die("Must be logged in.");
 }
-
-$key = "xcollection_test1";
+$key = "xcollection_test_create_find";
 $user = elgg_get_logged_in_user_entity();
 
 assertTrue(elgg_get_xcollection(null, $key) === false, "No container, no collection");
@@ -59,9 +59,9 @@ $collection = elgg_get_xcollection($user, $key);
 
 assertTrue($collection === false, 'Test collection was deleted');
 
-$collection = elgg_get_xcollection($user, $key, true);
+$collection = elgg_create_xcollection($user, $key);
 
-assertTrue($collection instanceof ElggXCollection, "Collection auto-created by elgg_get_xcollection");
+assertTrue($collection instanceof ElggXCollection, "elgg_create_xcollection()");
 
 testInfo("2nd collection GUID = " . $collection->get('guid'));
 
@@ -72,4 +72,5 @@ try {
     assertTrue(true, "Constructor prohibits creating duplicates");
 }
 
+// cleanup
 $collection->delete();
