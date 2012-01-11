@@ -327,11 +327,12 @@ class ElggXCollection extends ElggObject {
     }
 
     /**
-     * Get the IDs of items. Each key has an array of IDs
+     * Get the IDs of items. Each key (an item) has an array of IDs
      *
      * @param array|int|ElggEntity|ElggExtender $items
      * @param int|null $limit
      * @return array
+     * @deprecated
      */
     public function findItemIds($items, $limit = null) {
         global $CONFIG;
@@ -355,6 +356,30 @@ class ElggXCollection extends ElggObject {
             }
         }
         return $ids;
+    }
+
+    /**
+     * Do any of the provided items appear in the collection?
+     *
+     * @param array|int|ElggEntity|ElggExtender $items
+     * @return bool
+     */
+    public function hasAnyOf($items) {
+        return (bool) $this->intersectItems($items);
+    }
+
+    /**
+     * Return only items that also appear in the collection (and in the order they
+     * appear in the collection)
+     *
+     * @param array|int|ElggEntity|ElggExtender $items
+     * @return array
+     */
+    public function intersectItems($items) {
+        if (! is_array($items)) {
+            $items = array($items);
+        }
+        return $this->queryItems(true, 'item IN (' . implode(',', $items) . ')');
     }
 
     /**
