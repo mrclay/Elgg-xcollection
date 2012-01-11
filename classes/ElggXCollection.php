@@ -379,6 +379,7 @@ class ElggXCollection extends ElggObject {
         if (! is_array($items)) {
             $items = array($items);
         }
+        $items = $this->toPositiveInt($items);
         return $this->queryItems(true, 'item IN (' . implode(',', $items) . ')');
     }
 
