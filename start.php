@@ -104,7 +104,7 @@ function elgg_xcollection_exists($container_guid, $key) {
  * Trigger the ("apply", "xcollection") plugin hook to apply collections to an elgg_get_entities
  * query.
  *
- * $params will contain:
+ * $params will, by default, contain:
  *    query_name : name that hook handlers will look for to apply their collections.
  *                 e.g. "pages_group_widget_list"
  *    function : "elgg_get_entities"
@@ -115,16 +115,17 @@ function elgg_xcollection_exists($container_guid, $key) {
  *
  * @param array $options to be passed into elgg_get_entities
  * @param string $query_name a name that hook handlers can recognize the query by
+ * @param array $params to be passed to the hook handler
  */
-function elgg_xcollection_hook_into_entities_query(&$options, $query_name) {
-    _elgg_xcollection_trigger_hooks($options, $query_name, 'elgg_get_entities');
+function elgg_xcollection_hook_into_entities_query(&$options, $query_name, array $params = array()) {
+    _elgg_xcollection_trigger_hooks($options, $query_name, $params, 'elgg_get_entities');
 }
 
 /**
  * Trigger the ("apply", "xcollection") plugin hook to apply collections to an elgg_get_river
  * query.
  *
- * $params will contain:
+ * $params will, by default, contain:
  *    query_name : name that hook handlers will look for to apply their collections.
  *                 e.g. "activity_stream"
  *    function : "elgg_get_river"
@@ -135,21 +136,23 @@ function elgg_xcollection_hook_into_entities_query(&$options, $query_name) {
  *
  * @param array $options to be passed into elgg_get_river
  * @param string $query_name a name that hook handlers can recognize the query by
+ * @param array $params to be passed to the hook handler
  */
-function elgg_xcollection_hook_into_river_query(&$options, $query_name) {
-    _elgg_xcollection_trigger_hooks($options, $query_name, 'elgg_get_river');
+function elgg_xcollection_hook_into_river_query(&$options, $query_name, array $params = array()) {
+    _elgg_xcollection_trigger_hooks($options, $query_name, $params, 'elgg_get_river');
 }
 
 /**
  * @param array $options passed by reference
  * @param string $query_name
+ * @param array $params
  * @param string $func
  */
-function _elgg_xcollection_trigger_hooks(&$options, $query_name, $func = 'elgg_get_entities') {
-    $params = array(
+function _elgg_xcollection_trigger_hooks(&$options, $query_name, $params, $func = 'elgg_get_entities') {
+    $params = array_merge($params, array(
         'query_name' => $query_name,
         'function' => $func,
-    );
+    ));
     if (empty($options['xcollections'])) {
         $options['xcollections'] = array();
     }

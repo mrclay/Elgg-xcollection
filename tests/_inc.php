@@ -34,3 +34,4 @@ function testShowEntities($entities, $msg = '') {
     }
     testInfo("[" . implode(',', $names) . "] : {$msg}");
 }
+
