@@ -88,6 +88,35 @@ $options = array(
 apply_xcollections_to_options($options); // eventually wouldn't be necessary!
 testShowEntities(elgg_get_entities($options), "Multiple collections: Sticky + Filter");
 
+$options = array(
+    'limit' => 7,
+    'type' => 'object',
+    'subtype' => 'plugin',
+    'order_by' => "e.guid",
+);
+elgg_xcollection_hook_into_entities_query($options, 'test1');
+testShowEntities(elgg_get_entities($options), "Apply by hooks: no handlers");
+
+// test applying collections by trigger hooks
+
+elgg_register_plugin_hook_handler('apply', 'xcollection',
+    function ($hook, $type, $returnvalue, $params) use (&$container, &$key1) {
+        if ($params['query_name'] == 'test1') {
+            $returnvalue[] = elgg_xcollection_get_sticky_modifier($container, $key1);
+        }
+        return $returnvalue;
+    });
+
+$options = array(
+    'limit' => 7,
+    'type' => 'object',
+    'subtype' => 'plugin',
+    'order_by' => "e.guid",
+);
+elgg_xcollection_hook_into_entities_query($options, 'test1');
+testShowEntities(elgg_get_entities($options), "Apply by hooks: sticky");
+
+
 
 // cleanup
 $collection1->delete();

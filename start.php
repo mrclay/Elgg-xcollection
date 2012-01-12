@@ -101,14 +101,85 @@ function elgg_xcollection_exists($container_guid, $key) {
 }
 
 /**
+ * Trigger the ("apply", "xcollection") plugin hook to apply collections to an elgg_get_entities
+ * query.
+ *
+ * $params will contain:
+ *    query_name : name that hook handlers will look for to apply their collections.
+ *                 e.g. "pages_group_widget_list"
+ *    function : "elgg_get_entities"
+ *
+ * $returnValue will contain a (possibly empty) array of ElggXQueryModifier objects to
+ * which the handler should push their own ElggXQueryModifier object(s), or alter those
+ * already added.
+ *
+ * @param array $options to be passed into elgg_get_entities
+ * @param string $query_name a name that hook handlers can recognize the query by
+ */
+function elgg_xcollection_hook_into_entities_query(&$options, $query_name) {
+    _elgg_xcollection_trigger_hooks($options, $query_name, 'elgg_get_entities');
+}
+
+/**
+ * Trigger the ("apply", "xcollection") plugin hook to apply collections to an elgg_get_river
+ * query.
+ *
+ * $params will contain:
+ *    query_name : name that hook handlers will look for to apply their collections.
+ *                 e.g. "activity_stream"
+ *    function : "elgg_get_river"
+ *
+ * $returnValue will contain a (possibly empty) array of ElggXQueryModifier objects to
+ * which the handler should push their own ElggXQueryModifier object(s), or alter those
+ * already added.
+ *
+ * @param array $options to be passed into elgg_get_river
+ * @param string $query_name a name that hook handlers can recognize the query by
+ */
+function elgg_xcollection_hook_into_river_query(&$options, $query_name) {
+    _elgg_xcollection_trigger_hooks($options, $query_name, 'elgg_get_river');
+}
+
+/**
+ * @param array $options passed by reference
+ * @param string $query_name
+ * @param string $func
+ */
+function _elgg_xcollection_trigger_hooks(&$options, $query_name, $func = 'elgg_get_entities') {
+    $params = array(
+        'query_name' => $query_name,
+        'function' => $func,
+    );
+    if (empty($options['xcollections'])) {
+        $options['xcollections'] = array();
+    }
+    $options['xcollections'] = elgg_trigger_plugin_hook('apply', 'xcollection', $params, $options['xcollections']);
+    apply_xcollections_to_options($options, _elgg_xcollection_get_join_column($func));
+}
+
+
+/**
+ * Get the column expression to join the items column to. e.g. "rv.id"
+ *
+ * @param string $query_function name of Elgg query function (e.g. elgg_get_entities)
+ * @return string
+ */
+function _elgg_xcollection_get_join_column($query_function) {
+    if (false !== strpos($query_function, 'river')) {
+        return 'rv.id';
+    }
+    return 'e.guid';
+}
+
+/**
  * This is a shim to support a 'collections' key in $options for elgg_get_entities, etc.
  * Call this on $options to convert 'collections' into other keys that those functions
  * already support.
  *
  * @param array $options
- * @param string $joinOnColumn (e.g. set to "rv.id" to order river items)
+ * @param string $join_column (e.g. set to "rv.id" to order river items)
  */
-function apply_xcollections_to_options(&$options, $joinOnColumn = 'e.guid') {
+function apply_xcollections_to_options(&$options, $join_column = 'e.guid') {
     if (empty($options['xcollections'])) {
         return;
     }
@@ -120,7 +191,7 @@ function apply_xcollections_to_options(&$options, $joinOnColumn = 'e.guid') {
             $app = new ElggXQueryModifier($app);
         }
         if ($app instanceof ElggXQueryModifier) {
-            $options = $app->prepareOptions($options, $joinOnColumn);
+            $options = $app->prepareOptions($options, $join_column);
         }
     }
     ElggXQueryModifier::resetCounter();
