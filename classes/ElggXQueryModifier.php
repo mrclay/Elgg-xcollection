@@ -69,9 +69,10 @@ class ElggXQueryModifier {
      * Note: temporary proof-of-concept API
      *
      * @param array $options
+     * @param string $joinOnColumn
      * @return array
      */
-    public function prepareOptions(array $options = array()) {
+    public function prepareOptions(array $options = array(), $joinOnColumn = 'e.guid') {
         if (! $this->includeCollection && ! $this->includeOthers) {
             // return none
             $options['wheres'][] = "(1 = 2)";
@@ -84,7 +85,7 @@ class ElggXQueryModifier {
         }
         global $CONFIG;
         $join = "JOIN {$CONFIG->dbprefix}xcollection_items {$tableAlias} "
-              . "ON (e.guid = {$tableAlias}.item AND {$tableAlias}.guid = $guid)";
+              . "ON ({$joinOnColumn} = {$tableAlias}.item AND {$tableAlias}.guid = $guid)";
         if ($this->includeOthers) {
             $join = "LEFT {$join}";
         }

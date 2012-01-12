@@ -106,8 +106,9 @@ function elgg_xcollection_exists($container_guid, $key) {
  * already support.
  *
  * @param array $options
+ * @param string $joinOnColumn (e.g. set to "rv.id" to order river items)
  */
-function apply_xcollections_to_options(&$options) {
+function apply_xcollections_to_options(&$options, $joinOnColumn = 'e.guid') {
     if (empty($options['xcollections'])) {
         return;
     }
@@ -119,11 +120,22 @@ function apply_xcollections_to_options(&$options) {
             $app = new ElggXQueryModifier($app);
         }
         if ($app instanceof ElggXQueryModifier) {
-            $options = $app->prepareOptions($options);
+            $options = $app->prepareOptions($options, $joinOnColumn);
         }
     }
     ElggXQueryModifier::resetCounter();
     unset($options['xcollections']);
+}
+
+/**
+ * This is a shim to support a 'collections' key in $options for elgg_get_river.
+ * Call this on $options to convert 'collections' into other keys that get_river
+ * already supports.
+ *
+ * @param $options
+ */
+function apply_xcollections_to_river_options(&$options) {
+    apply_xcollections_to_options($options, 'rv.id');
 }
 
 /**
