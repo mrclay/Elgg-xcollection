@@ -1,5 +1,5 @@
 <?php
-die('Tests disabled. Uncomment line 2 of mod/xcollection/tests/_inc.php');
+die('Tests disabled. Comment out line 2 of mod/xcollection/tests/_inc.php');
 
 require __DIR__ . '/../../../engine/start.php';
 ini_set('display_errors', 1);
