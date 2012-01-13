@@ -728,33 +728,6 @@ class ElggXCollection extends ElggObject {
     }
 
     /**
-     * Add one item to the end (or beginning if $dir = -1)
-     *
-     * @param int|ElggEntity|ElggExtender $new_item
-     * @param int $dir
-     * @return bool
-     */
-    /*protected function pushOne($new_item, $dir = 1) {
-        global $CONFIG;
-        $guid = (int)$this->attributes['guid'];
-        $new_item = $this->toPositiveInt($new_item);
-        if ($dir > 0) {
-            $func = 'MAX';
-            $step = self::STEP;
-        } else {
-            $func = 'MIN';
-            $step = - self::STEP;
-        }
-        return (bool) insert_data("
-            INSERT INTO {$CONFIG->dbprefix}xcollection_items (guid, item, priority)
-            VALUES ($guid, $new_item, (SELECT COALESCE({$func}(priority) + $step, 0)
-                                       FROM {$CONFIG->dbprefix}xcollection_items
-                                       WHERE guid = $guid
-                                      ))
-        ");
-    }*/
-
-    /**
      * Fetch items by query
      *
      * @param bool $ascending
