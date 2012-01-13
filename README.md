@@ -8,16 +8,19 @@ A collection has similarities to metadata; it's located by a string key, tied to
 
 ## Creating/Modifying Collections
 
-    // on login, make sure the user has a favorites collection.
-    // if already exists, this will just return false.
-    $user = elgg_get_logged_in_user_entity();
-    elgg_create_xcollection($user, 'faves');
+```php
+<?php
+// on login, make sure the user has a favorites collection.
+// if already exists, this will just return false.
+$user = elgg_get_logged_in_user_entity();
+elgg_create_xcollection($user, 'faves');
 
-    // later... add something to it
-    $coll = elgg_get_xcollection($user, 'faves');
-    if ($coll) {
-        $coll->unshiftItems($faveEntity); // will be stored as an int
-    }
+// later... add something to it
+$coll = elgg_get_xcollection($user, 'faves');
+if ($coll) {
+    $coll->unshiftItems($faveEntity); // will be stored as an int
+}
+```
 
 ## Applying Collections to Queries
 
@@ -25,11 +28,14 @@ To modify a query, you must specify the behavior of how a collection will affect
 
 In the following use, we use a collection to select the exact entities to be returned, so we don't need any additional options:
 
-    $options = array(
-        'xcollections' => elgg_xcollection_get_selector_modifier($user, 'faves'),
-    );
-    apply_xcollections_to_options($options);
-    echo elgg_list_entities($options);
+```php
+<?php
+$options = array(
+    'xcollections' => elgg_xcollection_get_selector_modifier($user, 'faves'),
+);
+apply_xcollections_to_options($options);
+echo elgg_list_entities($options);
+```
 
 Note the `apply_xcollections_to_options` function. This is currently required but will probably not be in a core implementation.
 
@@ -37,10 +43,13 @@ Note the `apply_xcollections_to_options` function. This is currently required bu
 
 Via plugin hooks, you can simply allow any query to be modified by third parties.
 
-    if (elgg_plugin_exists('elgg_xcollection')) {
-        elgg_xcollection_hook_into_entities_query($options, 'pages_group_widget', array('group' => $group_entity));
-    }
-    $content = elgg_list_entities($options);
+```php
+<?php
+if (elgg_plugin_exists('elgg_xcollection')) {
+    elgg_xcollection_hook_into_entities_query($options, 'pages_group_widget', array('group' => $group_entity));
+}
+$content = elgg_list_entities($options);
+```
 
 Above, `elgg_xcollection_hook_into_entities_query` accepts your query options, a name describing where this query is used, and any other data you want passed in `$params`. Here, since this is a group widget, we want to give handlers a reference to the group so they can find collections on it.
 
@@ -48,15 +57,17 @@ Above, `elgg_xcollection_hook_into_entities_query` accepts your query options, a
 
 To modify the above query, we create a handler for the hook `apply, xcollection`. The handler checks for the query name it wants to affect in `$params['query_name']`, and optionally adds a query modifier to the `$returnvalue` array.
 
-    elgg_register_plugin_hook_handler('apply', 'xcollection', 'my_handler');
-    
-    function my_handler($hook, $type, $returnvalue, $params) {
-        if ($params['query_name'] == 'pages_group_widget') {
-            if (isset($params['group']) && $params['group'] instanceof ElggGroup) {
-                $returnvalue[] = elgg_xcollection_get_sticky_modifier($params['group'], 'stickies');
-            }
-        }
-        return $returnvalue;
-    };
+```php
+<?php
+elgg_register_plugin_hook_handler('apply', 'xcollection', 'my_handler');
 
+function my_handler($hook, $type, $returnvalue, $params) {
+    if ($params['query_name'] == 'pages_group_widget') {
+        if (isset($params['group']) && $params['group'] instanceof ElggGroup) {
+            $returnvalue[] = elgg_xcollection_get_sticky_modifier($params['group'], 'stickies');
+        }
+    }
+    return $returnvalue;
+};
+```
 This applies the group's "stickies" collection to the query such that items in the collection appear first.
