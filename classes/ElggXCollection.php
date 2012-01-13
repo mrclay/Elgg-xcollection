@@ -11,6 +11,16 @@ class ElggXCollection extends ElggObject {
     const STEP = 100;
 
     /**
+     * @var bool
+     */
+    protected $logged_in_user_can_edit = null;
+
+    /**
+     * @var int
+     */
+    protected $logged_in_user_guid = null;
+
+    /**
 	 * Initialise the attributes array.
 	 * This is vital to distinguish between metadata and base parameters.
 	 *
@@ -103,10 +113,22 @@ class ElggXCollection extends ElggObject {
      * @return true|false Depending on permissions
      */
     public function canEdit($user_guid = 0) {
-        if ($entity = get_entity($this->get('container_guid'))) {
-            return $entity->canEdit($user_guid);
+        if (! $user_guid) {
+            $user_guid = elgg_get_logged_in_user_guid();
         }
-        return false;
+        // cache permission of current user internally because this may get called a lot
+        // by the item modification methods
+        if ($user_guid === $this->logged_in_user_guid) {
+            return $this->logged_in_user_can_edit;
+        }
+        $this->logged_in_user_guid = $user_guid;
+        $this->logged_in_user_can_edit = false;
+        if ($entity = get_entity($this->get('container_guid'))) {
+            if ($entity->canEdit($user_guid)) {
+                $this->logged_in_user_can_edit = true;
+            }
+        }
+        return $this->logged_in_user_can_edit;
     }
 
     /**
@@ -262,6 +284,9 @@ class ElggXCollection extends ElggObject {
      */
     public function deleteAllItems() {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         $guid = (int)$this->attributes['guid'];
         return delete_data("
             DELETE FROM {$CONFIG->dbprefix}xcollection_items
@@ -277,6 +302,9 @@ class ElggXCollection extends ElggObject {
      */
     public function deleteItems($items) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         $guid = (int)$this->attributes['guid'];
         if (! is_array($items)) {
             $items = array($items);
@@ -297,6 +325,9 @@ class ElggXCollection extends ElggObject {
      */
     public function deleteItemsById($ids) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         $guid = (int)$this->attributes['guid'];
         $ids = (array)$ids;
         return delete_data("
@@ -390,6 +421,9 @@ class ElggXCollection extends ElggObject {
      * @return bool
      */
     public function moveItemToBeginning($item) {
+        if (! $this->canEdit()) {
+            return false;
+        }
         $ids = $this->findItemIds($item, 1);
         if ($ids) {
             $ids = array_shift($ids);
@@ -407,6 +441,9 @@ class ElggXCollection extends ElggObject {
      * @return bool
      */
     public function moveItemToEnd($item) {
+        if (! $this->canEdit()) {
+            return false;
+        }
         $ids = $this->findItemIds($item, 1);
         if ($ids) {
             $ids = array_shift($ids);
@@ -426,6 +463,9 @@ class ElggXCollection extends ElggObject {
      */
     public function swapItems($item1, $item2) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         $guid = (int)$this->attributes['guid'];
         list($item1, $item2) = $this->toPositiveInt(array($item1, $item2));
         $rows = get_data("
@@ -454,6 +494,9 @@ class ElggXCollection extends ElggObject {
      */
     public function insertBefore($new_items, $existing_item = null) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         if (! $new_items) {
             return false;
         }
@@ -496,6 +539,9 @@ class ElggXCollection extends ElggObject {
      */
     public function insertAfter($new_items, $existing_item = null) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         if (! $new_items) {
             return false;
         }
@@ -596,6 +642,9 @@ class ElggXCollection extends ElggObject {
      */
     protected function insertBetween($priority1, $priority2, $item2, array $new_items) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         if ($priority1 >= $priority2) {
             return false;
         }
@@ -632,6 +681,9 @@ class ElggXCollection extends ElggObject {
      */
     protected function pushMultiple($new_items, $dir = 1) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         if (! $new_items) {
             return true;
         }
@@ -761,6 +813,9 @@ class ElggXCollection extends ElggObject {
      */
     protected function removeMultipleFrom($num, $from_beginning) {
         global $CONFIG;
+        if (! $this->canEdit()) {
+            return false;
+        }
         $num = (int)max($num, 0);
         $guid = (int)$this->attributes['guid'];
         $priority_order = $from_beginning ? 'ASC' : 'DESC';
