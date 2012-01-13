@@ -107,7 +107,8 @@ function elgg_xcollection_exists($container_guid, $key) {
  * $params will, by default, contain:
  *    query_name : name that hook handlers will look for to apply their collections.
  *                 e.g. "pages_group_widget_list"
- *    function : "elgg_get_entities"
+ *    options    : a copy of the $options array (but without the "xcollections" key)
+ *    function   : "elgg_get_entities"
  *
  * $returnValue will contain a (possibly empty) array of ElggXQueryModifier objects to
  * which the handler should push their own ElggXQueryModifier object(s), or alter those
@@ -128,7 +129,8 @@ function elgg_xcollection_hook_into_entities_query(&$options, $query_name, array
  * $params will, by default, contain:
  *    query_name : name that hook handlers will look for to apply their collections.
  *                 e.g. "activity_stream"
- *    function : "elgg_get_river"
+ *    options    : a copy of the $options array (but without the "xcollections" key)
+ *    function   : "elgg_get_river"
  *
  * $returnValue will contain a (possibly empty) array of ElggXQueryModifier objects to
  * which the handler should push their own ElggXQueryModifier object(s), or alter those
@@ -152,7 +154,9 @@ function _elgg_xcollection_trigger_hooks(&$options, $query_name, $params, $func 
     $params = array_merge($params, array(
         'query_name' => $query_name,
         'function' => $func,
+        'options' => $options,
     ));
+    unset($params['options']['xcollections']);
     if (empty($options['xcollections'])) {
         $options['xcollections'] = array();
     }
