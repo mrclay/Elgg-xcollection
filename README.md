@@ -45,7 +45,7 @@ Via plugin hooks, you can simply allow any query to be modified by third parties
 
 ```php
 <?php
-if (elgg_plugin_exists('elgg_xcollection')) {
+if (elgg_plugin_exists('xcollection')) {
     elgg_xcollection_hook_into_entities_query($options, 'pages_group_widget', array('group' => $group_entity));
 }
 $content = elgg_list_entities($options);
