@@ -1,6 +1,9 @@
 <?php
 /**
  * A Collection entity.
+ *
+ * @todo remove "id" column from collection items, rewrite API so not needed
+ * @todo make unique index on [item, guid] in collection items
  */
 class ElggXCollection extends ElggObject {
 
@@ -110,7 +113,7 @@ class ElggXCollection extends ElggObject {
      *
      * @param int $user_guid The GUID of the user (defaults to currently logged in user)
      *
-     * @return true|false Depending on permissions
+     * @return bool Depending on permissions
      */
     public function canEdit($user_guid = 0) {
         if (! $user_guid) {
@@ -187,7 +190,7 @@ class ElggXCollection extends ElggObject {
     /**
      * Get number of items
      *
-     * @return int|false
+     * @return int|bool
      */
     public function countItems() {
         return $this->queryItems(true, '', 0, null, true);
@@ -280,7 +283,7 @@ class ElggXCollection extends ElggObject {
     }
 
     /**
-     * @return false|int
+     * @return int|bool
      */
     public function deleteAllItems() {
         global $CONFIG;
@@ -298,7 +301,7 @@ class ElggXCollection extends ElggObject {
      * Remove items (even if they appear multiple times)
      *
      * @param array|int|ElggEntity|ElggExtender $items
-     * @return false|int
+     * @return int|bool
      */
     public function deleteItems($items) {
         global $CONFIG;
@@ -321,7 +324,7 @@ class ElggXCollection extends ElggObject {
      * Remove items by ID
      *
      * @param array $ids
-     * @return false|int
+     * @return int|bool
      */
     public function deleteItemsById($ids) {
         global $CONFIG;
@@ -341,7 +344,7 @@ class ElggXCollection extends ElggObject {
      * Remove item(s) from the beginning. Unlike array_shift(), the item(s) is/are not returned.
      *
      * @param int $num
-     * @return false|int num rows removed
+     * @return int|bool num rows removed
      */
     public function shiftItems($num = 1) {
         return $this->removeMultipleFrom($num, true);
@@ -351,7 +354,7 @@ class ElggXCollection extends ElggObject {
      * Remove item(s) from the end. Unlike array_pop(), the item(s) is/are not returned.
      *
      * @param int $num
-     * @return false|int num rows removed
+     * @return int|bool num rows removed
      */
     public function popItems($num = 1) {
         return $this->removeMultipleFrom($num, false);
@@ -510,11 +513,10 @@ class ElggXCollection extends ElggObject {
             return $this->pushMultiple($new_items);
         }
         $existing_item = $this->toPositiveInt($existing_item);
-        $item_priorities = $this->prioritiesOf($existing_item, 1);
-        if (! $item_priorities) {
+        $priority2 = $this->getPriority($existing_item);
+        if (false === $priority2) {
             return false;
         }
-        $priority2 = $item_priorities[0];
         // find next lowest priority
         $row = get_data_row("
             SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
@@ -527,7 +529,7 @@ class ElggXCollection extends ElggObject {
             return $this->pushMultiple($new_items, -1);
         }
         $priority1 = $row->priority;
-        $this->insertBetween($priority1, $priority2, $existing_item, $new_items);
+        return $this->insertBetween($priority1, $priority2, $existing_item, $new_items);
     }
 
     /**
@@ -554,11 +556,10 @@ class ElggXCollection extends ElggObject {
         if (! $existing_item) {
             return $this->pushMultiple($new_items);
         }
-        $item_priorities = $this->prioritiesOf($existing_item, 1);
-        if (! $item_priorities) {
+        $priority1 = $this->getPriority($existing_item);
+        if (false === $priority1) {
             return false;
         }
-        $priority1 = $item_priorities[0];
         // find next highest priority
         $row = get_data_row("
             SELECT priority, item FROM {$CONFIG->dbprefix}xcollection_items
@@ -576,7 +577,7 @@ class ElggXCollection extends ElggObject {
     }
 
     /**
-     * @param index $index
+     * @param int $index
      * @return int|null
      */
     public function itemAt($index) {
@@ -586,51 +587,40 @@ class ElggXCollection extends ElggObject {
 
     /**
      * @param int|ElggEntity|ElggExtender $item
-     * @param int $offset
      * @return bool|int
      */
-    public function indexOf($item, $offset = 0) {
+    public function indexOf($item) {
         global $CONFIG;
         $guid = (int)$this->attributes['guid'];
         $item = $this->toPositiveInt($item);
-        if ($offset == 0) {
-            $row = get_data_row("
-                SELECT COUNT(*) AS cnt FROM {$CONFIG->dbprefix}xcollection_items
-                WHERE guid = $guid
-                  AND priority <=
-                    (SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
-                    WHERE guid = $guid AND item = $item
-                    ORDER BY priority
-                    LIMIT 1)
+        $row = get_data_row("
+            SELECT COUNT(*) AS cnt FROM {$CONFIG->dbprefix}xcollection_items
+            WHERE guid = $guid
+              AND priority <=
+                (SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
+                WHERE guid = $guid AND item = $item
                 ORDER BY priority
-            ");
-            return ($row->cnt == 0) ? false : (int)$row->cnt - 1;
-        }
+                LIMIT 1)
+            ORDER BY priority
+        ");
+        return ($row->cnt == 0) ? false : (int)$row->cnt - 1;
     }
 
     /**
      * @param int|ElggEntity|ElggExtender $item
-     * @param int|null $limit
-     * @return array
+     * @return int|bool false if not found
      */
-    public function prioritiesOf($item, $limit = null) {
+    public function getPriority($item) {
         global $CONFIG;
         $guid = (int)$this->attributes['guid'];
         $item = $this->toPositiveInt($item);
-        $limit_clause = ($limit > 0) ? ("LIMIT " . (int)$limit) : "";
         $rows = get_data("
             SELECT priority FROM {$CONFIG->dbprefix}xcollection_items
             WHERE guid = $guid AND item = $item
             ORDER BY priority
-            $limit_clause
+            LIMIT 1
         ");
-        $priorities = array();
-        if ($rows) {
-            foreach ($rows as $row) {
-                $priorities[] = $row->priority;
-            }
-        }
-        return $priorities;
+        return $rows ? $rows[0]->priority : false;
     }
 
     /**
@@ -735,7 +725,7 @@ class ElggXCollection extends ElggObject {
      * @param int $offset
      * @param int|null $limit
      * @param bool $count_only if true, return will be number of rows
-     * @return array|int|false
+     * @return array|int|bool
      */
     protected function queryItems($ascending = true, $where = '', $offset = 0, $limit = null, $count_only = false) {
         global $CONFIG;
@@ -782,7 +772,7 @@ class ElggXCollection extends ElggObject {
      *
      * @param int $num
      * @param bool $from_beginning remove from the beginning of the collection?
-     * @return false|int num rows removed
+     * @return int|bool num rows removed
      */
     protected function removeMultipleFrom($num, $from_beginning) {
         global $CONFIG;
