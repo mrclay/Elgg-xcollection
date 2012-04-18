@@ -94,7 +94,7 @@ $options = array(
     'subtype' => 'plugin',
     'order_by' => "e.guid",
 );
-elgg_xcollection_hook_into_entities_query($options, 'test1');
+elgg_xcollection_alter_entities_query($options, 'test1');
 testShowEntities(elgg_get_entities($options), "Apply by hooks: no handlers");
 
 // test applying collections by trigger hooks
@@ -113,7 +113,7 @@ $options = array(
     'subtype' => 'plugin',
     'order_by' => "e.guid",
 );
-elgg_xcollection_hook_into_entities_query($options, 'test1');
+elgg_xcollection_alter_entities_query($options, 'test1');
 testShowEntities(elgg_get_entities($options), "Apply by hooks: sticky");
 
 

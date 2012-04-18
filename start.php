@@ -118,7 +118,7 @@ function elgg_xcollection_exists($container_guid, $key) {
  * @param string $query_name a name that hook handlers can recognize the query by
  * @param array $params to be passed to the hook handler
  */
-function elgg_xcollection_hook_into_entities_query(&$options, $query_name, array $params = array()) {
+function elgg_xcollection_alter_entities_query(&$options, $query_name, array $params = array()) {
     _elgg_xcollection_trigger_hooks($options, $query_name, $params, 'elgg_get_entities');
 }
 
@@ -140,7 +140,7 @@ function elgg_xcollection_hook_into_entities_query(&$options, $query_name, array
  * @param string $query_name a name that hook handlers can recognize the query by
  * @param array $params to be passed to the hook handler
  */
-function elgg_xcollection_hook_into_river_query(&$options, $query_name, array $params = array()) {
+function elgg_xcollection_alter_river_query(&$options, $query_name, array $params = array()) {
     _elgg_xcollection_trigger_hooks($options, $query_name, $params, 'elgg_get_river');
 }
 

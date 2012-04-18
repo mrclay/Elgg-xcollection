@@ -46,12 +46,12 @@ Via plugin hooks, you can simply allow any query to be modified by third parties
 ```php
 <?php
 if (elgg_is_plugin_active('xcollection')) {
-    elgg_xcollection_hook_into_entities_query($options, 'pages_group_widget', array('group' => $group_entity));
+    elgg_xcollection_alter_entities_query($options, 'pages_group_widget', array('group' => $group_entity));
 }
 $content = elgg_list_entities($options);
 ```
 
-Above, `elgg_xcollection_hook_into_entities_query` accepts your query options, a name describing where this query is used, and any other data you want passed in `$params`. Here, since this is a group widget, we want to give handlers a reference to the group so they can find collections on it.
+Above, `elgg_xcollection_alter_entities_query` accepts your query options, a name describing where this query is used, and any other data you want passed in `$params`. Here, since this is a group widget, we want to give handlers a reference to the group so they can find collections on it.
 
 ## Modifying Queries via Plugin Hook
 
