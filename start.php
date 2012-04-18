@@ -7,34 +7,29 @@ function xcollection_init() {
 }
 
 /**
- * Get a raw (directly modifiable) collection object
+ * Get a modifiable collection object (if the current user can access it)
  *
- * @param int|ElggEntity $container
+ * @param ElggEntity $container
  * @param string $key
- * @return ElggXCollection|false
+ * @return ElggXCollection|null
  */
-function elgg_get_xcollection($container, $key) {
-    if (is_numeric($container)) {
-        $container = get_entity($container);
+function elgg_get_xcollection(ElggEntity $container, $key) {
+    $collection_guid = find_xcollection_guid($container->get('guid'), $key);
+    if ($collection_guid) {
+        // it exists, but can the user see it?
+        return get_entity($collection_guid);
     }
-    if ($container) {
-        $collection_guid = find_xcollection_guid($container->get('guid'), $key);
-        if ($collection_guid) {
-            // it exists, but can the user see it?
-            return get_entity($collection_guid);
-        }
-    }
-    return false;
+    return null;
 }
 
 /**
  * Get an object used to implement sticky items
  *
- * @param int|ElggEntity $container
+ * @param ElggEntity $container
  * @param string $key
  * @return ElggXCollectionQueryModifier
  */
-function elgg_xcollection_get_sticky_modifier($container, $key) {
+function elgg_xcollection_get_sticky_modifier(ElggEntity $container, $key) {
     $collection = elgg_get_xcollection($container, $key);
     $application = new ElggXCollectionQueryModifier($collection);
     return $application->useStickyModel();
@@ -43,11 +38,11 @@ function elgg_xcollection_get_sticky_modifier($container, $key) {
 /**
  * Get an object used to filter out collection items
  *
- * @param int|ElggEntity $container
+ * @param ElggEntity $container
  * @param string $key
  * @return ElggXCollectionQueryModifier
  */
-function elgg_xcollection_get_filter_modifier($container, $key) {
+function elgg_xcollection_get_filter_modifier(ElggEntity $container, $key) {
     $collection = elgg_get_xcollection($container, $key);
     $application = new ElggXCollectionQueryModifier($collection);
     return $application->useAsFilter();
@@ -56,11 +51,11 @@ function elgg_xcollection_get_filter_modifier($container, $key) {
 /**
  * Get an object used to select only items from a collection
  *
- * @param int|ElggEntity $container
+ * @param ElggEntity $container
  * @param string $key
  * @return ElggXCollectionQueryModifier
  */
-function elgg_xcollection_get_selector_modifier($container, $key) {
+function elgg_xcollection_get_selector_modifier(ElggEntity $container, $key) {
     $collection = elgg_get_xcollection($container, $key);
     return new ElggXCollectionQueryModifier($collection);
 }
@@ -68,23 +63,20 @@ function elgg_xcollection_get_selector_modifier($container, $key) {
 /**
  * Create a collection
  *
- * @param int|ElggEntity $container
+ * @param ElggEntity $container
  * @param string $key
- * @return ElggXCollection|false
+ * @return ElggXCollection|bool
  */
-function elgg_create_xcollection($container, $key) {
-    if (is_numeric($container)) {
-        $container = get_entity($container);
+function elgg_create_xcollection(ElggEntity $container, $key) {
+    $collection_guid = find_xcollection_guid($container->get('guid'), $key);
+    if ($collection_guid) {
+        // already exists
+        return false;
     }
-    if ($container) {
-        $collection_guid = find_xcollection_guid($container->get('guid'), $key);
-        if ($collection_guid) {
-            // already exists
-            return false;
-        }
-        try {
-            return new ElggXCollection(null, $container, $key);
-        } catch (Exception $e) {}
+    try {
+        return new ElggXCollection(null, $container, $key);
+    } catch (Exception $e) {
+        // likely can't edit container
     }
     return false;
 }
@@ -219,20 +211,20 @@ function apply_xcollections_to_river_options(&$options) {
 /**
  * @param int $container_guid
  * @param string $key
- * @return int|false
+ * @return int|bool
  */
 function find_xcollection_guid($container_guid, $key) {
-    global $CONFIG;
+    $prefix = elgg_get_config('dbprefix');
 
     // find the GUID (w/o access control)
     $md_name_id = (int) get_metastring_id('key');
     $md_value_id = (int) get_metastring_id($key);
     $subtype_id = (int) get_subtype_id('object', 'xcollection');
-    $container_guid = (int)$container_guid;
+    $container_guid = (int) $container_guid;
     $row = get_data_row("
         SELECT e.guid
-        FROM {$CONFIG->dbprefix}entities e
-        JOIN {$CONFIG->dbprefix}metadata md ON (e.guid = md.entity_guid)
+        FROM {$prefix}entities e
+        JOIN {$prefix}metadata md ON (e.guid = md.entity_guid)
         WHERE e.container_guid = {$container_guid}
           AND e.type = 'object'
           AND e.subtype = {$subtype_id}
@@ -240,7 +232,7 @@ function find_xcollection_guid($container_guid, $key) {
           AND md.value_id = {$md_value_id}
     ");
     if (isset($row->guid)) {
-        return (int)$row->guid;
+        return (int) $row->guid;
     } else {
         return false;
     }

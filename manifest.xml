@@ -3,9 +3,10 @@
 	<name>ElggXCollection (experimental API)</name>
 	<author>Steve Clay</author>
 	<version>1.0</version>
+    <website>https://github.com/mrclay/Elgg-xcollection</website>
 	<description>Adds an API to work with Elgg(X)Collection objects. This functionality may make its way into core without the "X".</description>
 	<requires>
-		<type>elgg_version</type>
-		<version>2011032200</version>
+		<type>elgg_release</type>
+		<version>1.8</version>
 	</requires>
 </plugin_manifest>

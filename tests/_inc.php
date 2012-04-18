@@ -9,6 +9,7 @@ ini_set('display_errors', 1);
  * @param mixed $test Condition to test, evaluated as boolean
  * @param string $message Descriptive message to output upon test
  * @url http://www.sitepoint.com/blogs/2007/08/13/ptest-php-unit-tester-in-9-lines-of-code/
+ * @return bool
  */
 function assertTrue($test, $message) {
     static $count;
