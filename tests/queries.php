@@ -35,7 +35,7 @@ $options = array(
     'order_by' => "e.guid",
 );
 
-$modifier = new ElggXQueryModifier($collection);
+$modifier = new ElggXCollectionQueryModifier($collection);
 
 $modifier->isReversed = false;
 $fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
@@ -77,7 +77,7 @@ testShowEntities($fetchedEntities, "no collection, no others");
 
 $collection->deleteAllItems();
 
-$modifier = new ElggXQueryModifier(null);
+$modifier = new ElggXCollectionQueryModifier(null);
 
 $fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "missing collection: no others (default)");

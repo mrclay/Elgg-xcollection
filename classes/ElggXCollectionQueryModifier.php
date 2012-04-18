@@ -3,7 +3,7 @@
 /**
  * Create a strategy for applying a collection to a query
  */
-class ElggXQueryModifier {
+class ElggXCollectionQueryModifier {
     protected $collection = null;
     public $includeCollection = true;
     public $includeOthers = false;
@@ -45,7 +45,7 @@ class ElggXQueryModifier {
     }
 
     /**
-     * @return ElggXQueryModifier
+     * @return ElggXCollectionQueryModifier
      */
     public function useStickyModel() {
         $this->includeOthers = $this->includeCollection = $this->collectionItemsFirst = true;
@@ -54,7 +54,7 @@ class ElggXQueryModifier {
     }
 
     /**
-     * @return ElggXQueryModifier
+     * @return ElggXCollectionQueryModifier
      */
     public function useAsFilter() {
         $this->includeOthers = true;

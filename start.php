@@ -32,11 +32,11 @@ function elgg_get_xcollection($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @return ElggXQueryModifier
+ * @return ElggXCollectionQueryModifier
  */
 function elgg_xcollection_get_sticky_modifier($container, $key) {
     $collection = elgg_get_xcollection($container, $key);
-    $application = new ElggXQueryModifier($collection);
+    $application = new ElggXCollectionQueryModifier($collection);
     return $application->useStickyModel();
 }
 
@@ -45,11 +45,11 @@ function elgg_xcollection_get_sticky_modifier($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @return ElggXQueryModifier
+ * @return ElggXCollectionQueryModifier
  */
 function elgg_xcollection_get_filter_modifier($container, $key) {
     $collection = elgg_get_xcollection($container, $key);
-    $application = new ElggXQueryModifier($collection);
+    $application = new ElggXCollectionQueryModifier($collection);
     return $application->useAsFilter();
 }
 
@@ -58,11 +58,11 @@ function elgg_xcollection_get_filter_modifier($container, $key) {
  *
  * @param int|ElggEntity $container
  * @param string $key
- * @return ElggXQueryModifier
+ * @return ElggXCollectionQueryModifier
  */
 function elgg_xcollection_get_selector_modifier($container, $key) {
     $collection = elgg_get_xcollection($container, $key);
-    return new ElggXQueryModifier($collection);
+    return new ElggXCollectionQueryModifier($collection);
 }
 
 /**
@@ -110,8 +110,8 @@ function elgg_xcollection_exists($container_guid, $key) {
  *    options    : a copy of the $options array (but without the "xcollections" key)
  *    function   : "elgg_get_entities"
  *
- * $returnValue will contain a (possibly empty) array of ElggXQueryModifier objects to
- * which the handler should push their own ElggXQueryModifier object(s), or alter those
+ * $returnValue will contain a (possibly empty) array of ElggXCollectionQueryModifier objects to
+ * which the handler should push their own ElggXCollectionQueryModifier object(s), or alter those
  * already added.
  *
  * @param array $options to be passed into elgg_get_entities
@@ -132,8 +132,8 @@ function elgg_xcollection_hook_into_entities_query(&$options, $query_name, array
  *    options    : a copy of the $options array (but without the "xcollections" key)
  *    function   : "elgg_get_river"
  *
- * $returnValue will contain a (possibly empty) array of ElggXQueryModifier objects to
- * which the handler should push their own ElggXQueryModifier object(s), or alter those
+ * $returnValue will contain a (possibly empty) array of ElggXCollectionQueryModifier objects to
+ * which the handler should push their own ElggXCollectionQueryModifier object(s), or alter those
  * already added.
  *
  * @param array $options to be passed into elgg_get_river
@@ -195,13 +195,13 @@ function apply_xcollections_to_options(&$options, $join_column = 'e.guid') {
     }
     foreach ($options['xcollections'] as $app) {
         if ($app instanceof ElggXCollection) {
-            $app = new ElggXQueryModifier($app);
+            $app = new ElggXCollectionQueryModifier($app);
         }
-        if ($app instanceof ElggXQueryModifier) {
+        if ($app instanceof ElggXCollectionQueryModifier) {
             $options = $app->prepareOptions($options, $join_column);
         }
     }
-    ElggXQueryModifier::resetCounter();
+    ElggXCollectionQueryModifier::resetCounter();
     unset($options['xcollections']);
 }
 

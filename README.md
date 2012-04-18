@@ -24,7 +24,7 @@ if ($coll) {
 
 ## Applying Collections to Queries
 
-To modify a query, you must specify the behavior of how a collection will affect it. The `elgg_xcollection_get_*_modifier` functions make it simple to apply the most common behaviors to collections. The objects these output (ElggXQueryModifier instances) can be placed into an array `$options['xcollections']` before passing `$options` to your query function.
+To modify a query, you must specify the behavior of how a collection will affect it. The `elgg_xcollection_get_*_modifier` functions make it simple to apply the most common behaviors to collections. The objects these output (ElggXCollectionQueryModifier instances) can be placed into an array `$options['xcollections']` before passing `$options` to your query function.
 
 In the following use, we use a collection to select the exact entities to be returned, so we don't need any additional options:
 
