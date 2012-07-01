@@ -11,15 +11,15 @@ if (! elgg_is_logged_in()) {
 $key = "xcollection_test_create_find";
 $user = elgg_get_logged_in_user_entity();
 
-$collection = elgg_get_xcollection($user, $key);
+$collection = ElggCollection::fetch($user, $key);
 
 if (! assertTrue($collection === null, 'User test collection doesn\'t exist')) {
     $collection->delete();
 }
 
 try {
-    $collection = new ElggXCollection(null, $user, $key);
-    assertTrue($collection instanceof ElggXCollection, "Collection created");
+    $collection = new ElggCollection(null, $user, $key);
+    assertTrue($collection instanceof ElggCollection, "Collection created");
 
 } catch (Exception $e) {
 
@@ -29,13 +29,13 @@ try {
 
 testInfo("Collection GUID = " . $collection->get('guid'));
 
-assertTrue($collection->key === $key, "Has right key");
+assertTrue($collection->relationship_key === $key, "Has right key");
 
-assertTrue($collection->container_guid === $user->get('guid'), "Has right container_guid");
+assertTrue($collection->getEntityGuid() === $user->get('guid'), "Has right container_guid");
 
 try {
-    $collection2 = new ElggXCollection($collection->get('guid'));
-    assertTrue($collection2 instanceof ElggXCollection, "Collection loaded from guid");
+    $collection2 = new ElggCollection($collection->get('guid'));
+    assertTrue($collection2 instanceof ElggCollection, "Collection loaded from guid");
 } catch (Exception $e) {
     assertTrue(false, "Constructor threw exception: " . $e->getMessage());
     die();
@@ -45,18 +45,18 @@ assertTrue($collection->get('guid') == $collection2->get('guid'), "GUIDs match")
 
 $collection->delete();
 
-$collection = elgg_get_xcollection($user, $key);
+$collection = ElggCollection::fetch($user, $key);
 
 assertTrue($collection === null, 'Test collection was deleted');
 
-$collection = elgg_create_xcollection($user, $key);
+$collection = ElggCollection::fetch($user, $key);
 
-assertTrue($collection instanceof ElggXCollection, "elgg_create_xcollection()");
+assertTrue($collection instanceof ElggCollection, "elgg_create_xcollection()");
 
 testInfo("2nd collection GUID = " . $collection->get('guid'));
 
 try {
-    $collection3 = new ElggXCollection(null, $user, $key);
+    $collection3 = new ElggCollection(null, $user, $key);
     assertTrue(false, "Constructor prohibits creating duplicates");
 } catch (Exception $e) {
     assertTrue(true, "Constructor prohibits creating duplicates");

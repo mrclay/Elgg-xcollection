@@ -10,23 +10,23 @@ if (! elgg_is_logged_in()) {
 }
 $key = "xcollection_test_queries";
 $user = elgg_get_logged_in_user_entity();
-$collection = elgg_get_xcollection($user, $key);
+$collection = ElggCollection::fetch($user, $key);
 if (! $collection) {
-    $collection = elgg_create_xcollection($user, $key);
+    $collection = ElggCollection::create($user, $key);
 }
-if (! $collection instanceof ElggXCollection) {
+if (! $collection instanceof ElggCollection) {
     die('Could not get/create test collection.');
 }
 $plugins = array_slice(elgg_get_plugins(), 0, 3);
 testShowEntities($plugins, "natural order");
-$collection->pushItems($plugins);
+$collection->push($plugins);
 
 // begin test
-$items = array_values($collection->sliceItems());
+$items = array_values($collection->slice());
 
 $collection->swapItems($items[0], $items[1]);
 
-testInfo("Collection ({$collection->guid}) order: " . implode(',', $collection->sliceItems()));
+testInfo("Collection ({$collection->guid}) order: " . implode(',', $collection->slice()));
 
 $options = array(
     'limit' => 9999,
@@ -35,7 +35,7 @@ $options = array(
     'order_by' => "e.guid",
 );
 
-$modifier = new ElggXCollectionQueryModifier($collection);
+$modifier = new ElggCollectionQueryModifier($collection);
 
 $modifier->isReversed = false;
 $fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
@@ -75,9 +75,9 @@ $modifier->includeOthers = false;
 $fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "no collection, no others");
 
-$collection->deleteAllItems();
+$collection->removeAll();
 
-$modifier = new ElggXCollectionQueryModifier(null);
+$modifier = new ElggCollectionQueryModifier(null);
 
 $fetchedEntities = elgg_get_entities($modifier->prepareOptions($options));
 testShowEntities($fetchedEntities, "missing collection: no others (default)");

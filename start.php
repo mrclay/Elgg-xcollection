@@ -7,31 +7,15 @@ function xcollection_init() {
 }
 
 /**
- * Get a modifiable collection object (if the current user can access it)
- *
- * @param ElggEntity $container
- * @param string $key
- * @return ElggXCollection|null
- */
-function elgg_get_xcollection(ElggEntity $container, $key) {
-    $collection_guid = find_xcollection_guid($container->get('guid'), $key);
-    if ($collection_guid) {
-        // it exists, but can the user see it?
-        return get_entity($collection_guid);
-    }
-    return null;
-}
-
-/**
  * Get an object used to implement sticky items
  *
  * @param ElggEntity $container
  * @param string $key
- * @return ElggXCollectionQueryModifier
+ * @return ElggCollectionQueryModifier
  */
 function elgg_xcollection_get_sticky_modifier(ElggEntity $container, $key) {
-    $collection = elgg_get_xcollection($container, $key);
-    $application = new ElggXCollectionQueryModifier($collection);
+    $collection = ElggCollection::fetch($container, $key);
+    $application = new ElggCollectionQueryModifier($collection);
     return $application->useStickyModel();
 }
 
@@ -40,11 +24,11 @@ function elgg_xcollection_get_sticky_modifier(ElggEntity $container, $key) {
  *
  * @param ElggEntity $container
  * @param string $key
- * @return ElggXCollectionQueryModifier
+ * @return ElggCollectionQueryModifier
  */
 function elgg_xcollection_get_filter_modifier(ElggEntity $container, $key) {
-    $collection = elgg_get_xcollection($container, $key);
-    $application = new ElggXCollectionQueryModifier($collection);
+    $collection = ElggCollection::fetch($container, $key);
+    $application = new ElggCollectionQueryModifier($collection);
     return $application->useAsFilter();
 }
 
@@ -53,43 +37,11 @@ function elgg_xcollection_get_filter_modifier(ElggEntity $container, $key) {
  *
  * @param ElggEntity $container
  * @param string $key
- * @return ElggXCollectionQueryModifier
+ * @return ElggCollectionQueryModifier
  */
 function elgg_xcollection_get_selector_modifier(ElggEntity $container, $key) {
-    $collection = elgg_get_xcollection($container, $key);
-    return new ElggXCollectionQueryModifier($collection);
-}
-
-/**
- * Create a collection
- *
- * @param ElggEntity $container
- * @param string $key
- * @return ElggXCollection|bool
- */
-function elgg_create_xcollection(ElggEntity $container, $key) {
-    $collection_guid = find_xcollection_guid($container->get('guid'), $key);
-    if ($collection_guid) {
-        // already exists
-        return false;
-    }
-    try {
-        return new ElggXCollection(null, $container, $key);
-    } catch (Exception $e) {
-        // likely can't edit container
-    }
-    return false;
-}
-
-/**
- * Tell if a collection of exists regardless of the current user.
- *
- * @param int $container_guid
- * @param string $key
- * @return bool
- */
-function elgg_xcollection_exists($container_guid, $key) {
-    return (bool) find_xcollection_guid($container_guid, $key);
+    $collection = ElggCollection::fetch($container, $key);
+    return new ElggCollectionQueryModifier($collection);
 }
 
 /**
@@ -102,8 +54,8 @@ function elgg_xcollection_exists($container_guid, $key) {
  *    options    : a copy of the $options array (but without the "xcollections" key)
  *    function   : "elgg_get_entities"
  *
- * $returnValue will contain a (possibly empty) array of ElggXCollectionQueryModifier objects to
- * which the handler should push their own ElggXCollectionQueryModifier object(s), or alter those
+ * $returnValue will contain a (possibly empty) array of ElggCollectionQueryModifier objects to
+ * which the handler should push their own ElggCollectionQueryModifier object(s), or alter those
  * already added.
  *
  * @param array $options to be passed into elgg_get_entities
@@ -124,8 +76,8 @@ function elgg_xcollection_alter_entities_query(&$options, $query_name, array $pa
  *    options    : a copy of the $options array (but without the "xcollections" key)
  *    function   : "elgg_get_river"
  *
- * $returnValue will contain a (possibly empty) array of ElggXCollectionQueryModifier objects to
- * which the handler should push their own ElggXCollectionQueryModifier object(s), or alter those
+ * $returnValue will contain a (possibly empty) array of ElggCollectionQueryModifier objects to
+ * which the handler should push their own ElggCollectionQueryModifier object(s), or alter those
  * already added.
  *
  * @param array $options to be passed into elgg_get_river
@@ -186,14 +138,14 @@ function apply_xcollections_to_options(&$options, $join_column = 'e.guid') {
         $options['xcollections'] = array($options['xcollections']);
     }
     foreach ($options['xcollections'] as $app) {
-        if ($app instanceof ElggXCollection) {
-            $app = new ElggXCollectionQueryModifier($app);
+        if ($app instanceof ElggCollection) {
+            $app = new ElggCollectionQueryModifier($app);
         }
-        if ($app instanceof ElggXCollectionQueryModifier) {
+        if ($app instanceof ElggCollectionQueryModifier) {
             $options = $app->prepareOptions($options, $join_column);
         }
     }
-    ElggXCollectionQueryModifier::resetCounter();
+    ElggCollectionQueryModifier::resetCounter();
     unset($options['xcollections']);
 }
 
@@ -206,34 +158,4 @@ function apply_xcollections_to_options(&$options, $join_column = 'e.guid') {
  */
 function apply_xcollections_to_river_options(&$options) {
     apply_xcollections_to_options($options, 'rv.id');
-}
-
-/**
- * @param int $container_guid
- * @param string $key
- * @return int|bool
- */
-function find_xcollection_guid($container_guid, $key) {
-    $prefix = elgg_get_config('dbprefix');
-
-    // find the GUID (w/o access control)
-    $md_name_id = (int) get_metastring_id('key');
-    $md_value_id = (int) get_metastring_id($key);
-    $subtype_id = (int) get_subtype_id('object', 'xcollection');
-    $container_guid = (int) $container_guid;
-    $row = get_data_row("
-        SELECT e.guid
-        FROM {$prefix}entities e
-        JOIN {$prefix}metadata md ON (e.guid = md.entity_guid)
-        WHERE e.container_guid = {$container_guid}
-          AND e.type = 'object'
-          AND e.subtype = {$subtype_id}
-          AND md.name_id = {$md_name_id}
-          AND md.value_id = {$md_value_id}
-    ");
-    if (isset($row->guid)) {
-        return (int) $row->guid;
-    } else {
-        return false;
-    }
 }

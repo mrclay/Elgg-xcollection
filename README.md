@@ -13,10 +13,10 @@ A collection has similarities to metadata; it's located by a string key, tied to
 // on login, make sure the user has a favorites collection.
 // if already exists, this will just return false.
 $user = elgg_get_logged_in_user_entity();
-elgg_create_xcollection($user, 'faves');
+ElggCollection::create($user, 'faves');
 
 // later... add something to it
-$coll = elgg_get_xcollection($user, 'faves');
+$coll = ElggCollection::fetch($user, 'faves');
 if ($coll) {
     $coll->unshiftItems($faveEntity); // will be stored as an int
 }
@@ -24,7 +24,7 @@ if ($coll) {
 
 ## Applying Collections to Queries
 
-To modify a query, you must specify the behavior of how a collection will affect it. The `elgg_xcollection_get_*_modifier` functions make it simple to apply the most common behaviors to collections. The objects these output (ElggXCollectionQueryModifier instances) can be placed into an array `$options['xcollections']` before passing `$options` to your query function.
+To modify a query, you must specify the behavior of how a collection will affect it. The `elgg_xcollection_get_*_modifier` functions make it simple to apply the most common behaviors to collections. The objects these output (ElggCollectionQueryModifier instances) can be placed into an array `$options['xcollections']` before passing `$options` to your query function.
 
 In the following use, we use a collection to select the exact entities to be returned, so we don't need any additional options:
 

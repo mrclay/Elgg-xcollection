@@ -11,27 +11,27 @@ if (! elgg_is_logged_in()) {
 $key1 = "xcollection_test_api_usage";
 $key2 = "xcollection_test_api_usage2";
 $container = elgg_get_logged_in_user_entity();
-$collection1 = elgg_get_xcollection($container, $key1);
+$collection1 = ElggCollection::fetch($container, $key1);
 if (! $collection1) {
-    $collection1 = elgg_create_xcollection($container, $key1);
+    $collection1 = ElggCollection::create($container, $key1);
 }
-if (! $collection1 instanceof ElggXCollection) {
+if (! $collection1 instanceof ElggCollection) {
     die('Could not get/create test collection.');
 }
-$collection2 = elgg_get_xcollection($container, $key2);
+$collection2 = ElggCollection::fetch($container, $key2);
 if (! $collection2) {
-    $collection2 = elgg_create_xcollection($container, $key2);
+    $collection2 = ElggCollection::create($container, $key2);
 }
-if (! $collection2 instanceof ElggXCollection) {
+if (! $collection2 instanceof ElggCollection) {
     die('Could not get/create 2nd test collection.');
 }
 
 $plugins = elgg_get_plugins();
-$collection1->pushItems(array_slice($plugins, 5, 5));
-$collection2->pushItems(array_slice($plugins, 0, 5));
+$collection1->push(array_slice($plugins, 5, 5));
+$collection2->push(array_slice($plugins, 0, 5));
 
-testInfo("Collection1 ({$collection1->guid}) items: " . implode(',', $collection1->sliceItems()));
-testInfo("Collection2 ({$collection2->guid}) items: " . implode(',', $collection2->sliceItems()));
+testInfo("Collection1 items: " . implode(',', $collection1->slice()));
+testInfo("Collection2 items: " . implode(',', $collection2->slice()));
 
 $options = array(
     'xcollections' => elgg_xcollection_get_selector_modifier($container, $key1),
