@@ -2,15 +2,22 @@
 
 /**
  * Create a strategy for applying a collection to a query
+ *
+ * @access private
  */
 class ElggCollectionQueryModifier {
 
     protected $collection = null;
-    public $includeCollection = true;
+
+	static protected $counter = 0;
+
+	public $includeCollection = true;
+
     public $includeOthers = false;
+
     public $isReversed = false;
+
     public $collectionItemsFirst = true;
-    static protected $counter = 0;
 
     const DEFAULT_ORDER = 'e.time_created DESC';
 
@@ -118,31 +125,4 @@ class ElggCollectionQueryModifier {
         }
         return $options;
     }
-
-	/**
-	 * This is a shim to support a 'collections' key in $options for elgg_get_entities, etc.
-	 * Call this on $options to convert 'collections' into other keys that those functions
-	 * already support.
-	 *
-	 * @param array $options
-	 * @param string $join_column (e.g. set to "rv.id" to order river items)
-	 */
-	static public function applyToOptions(&$options, $join_column = 'e.guid') {
-		if (empty($options['xcollections'])) {
-			return;
-		}
-		if (! is_array($options['xcollections'])) {
-			$options['xcollections'] = array($options['xcollections']);
-		}
-		foreach ($options['xcollections'] as $app) {
-			if ($app instanceof ElggCollection) {
-				$app = new self($app);
-			}
-			if ($app instanceof ElggCollectionQueryModifier) {
-				$options = $app->prepareOptions($options, $join_column);
-			}
-		}
-		self::resetCounter();
-		unset($options['xcollections']);
-	}
 }
