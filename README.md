@@ -1,4 +1,6 @@
-**Note: Rename this folder to "xcollection" inside your Elgg "mod" folder.**
+# This plugin is deprecated.
+
+Please use [elggx_collections_api](https://github.com/mrclay/Elgg-elggx_collections_api)
 
 # xcollection
 
